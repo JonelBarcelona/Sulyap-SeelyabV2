@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — SULYAP-SEELYAB</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <style>
+    .admin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card { background: var(--blue); border-radius: var(--r); padding: 1.5rem 1.25rem; text-align: center; color: #fff; }
+    .stat-val  { font-size: 2.5rem; font-weight: 800; color: var(--gold); line-height: 1; letter-spacing: -0.03em; }
+    .stat-label{ font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.07em; color: rgba(255,255,255,0.55); font-weight: 600; margin-top: 0.4rem; }
+    .admin-section { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--r); overflow: hidden; margin-bottom: 1.5rem; }
+    .admin-section-head { padding: 0.75rem 1.25rem; background: var(--blue-soft); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--blue); display: flex; justify-content: space-between; align-items: center; }
+    .admin-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .admin-table th { text-align: left; padding: 0.55rem 1.25rem; background: #f9fafb; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+    .admin-table td { padding: 0.55rem 1.25rem; border-bottom: 1px solid var(--border); color: var(--text); }
+    .admin-table tr:last-child td { border-bottom: none; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em; }
+    .badge-mono { background: var(--blue-soft); color: var(--blue); }
+    .badge-poly { background: #e0f2fe; color: #0369a1; }
+    .badge-a { background: #d1fae5; color: #065f46; }
+    .badge-b { background: #fef3c7; color: #92400e; }
+    .empty-state { text-align: center; padding: 2.5rem 1.25rem; color: var(--muted); font-size: 0.85rem; }
+    .bar-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 1.25rem; border-bottom: 1px solid var(--border); font-size: 0.82rem; }
+    .bar-row:last-child { border-bottom: none; }
+    .bar-label { min-width: 130px; color: var(--text); font-weight: 500; }
+    .bar-track { flex: 1; height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; }
+    .bar-fill  { height: 100%; background: var(--gold); border-radius: 99px; transition: width 0.6s ease; }
+    .bar-count { min-width: 30px; text-align: right; font-weight: 700; color: var(--blue); font-size: 0.78rem; }
+    .uptime-tag { font-size: 0.72rem; color: var(--muted); }
+    .refresh-btn { background: none; border: 1.5px solid var(--border); color: var(--muted); padding: 0.3rem 0.75rem; border-radius: 6px; font-size: 0.72rem; font-family: 'Inter', sans-serif; cursor: pointer; transition: all 0.2s; }
+    .refresh-btn:hover { border-color: var(--blue); color: var(--blue); }
+    @media (max-width: 600px) { .admin-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="container header-inner">
+    <div class="logo">
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+        <circle cx="16" cy="16" r="7" fill="#FFC107"/>
+        <line x1="16" y1="1" x2="16" y2="6" stroke="#FFC107" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="16" y1="26" x2="16" y2="31" stroke="#FFC107" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="1" y1="16" x2="6" y2="16" stroke="#FFC107" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="26" y1="16" x2="31" y2="16" stroke="#FFC107" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="5" y1="5" x2="8.5" y2="8.5" stroke="#FFC107" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="23.5" y1="23.5" x2="27" y2="27" stroke="#FFC107" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="27" y1="5" x2="23.5" y2="8.5" stroke="#FFC107" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="8.5" y1="23.5" x2="5" y2="27" stroke="#FFC107" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+      <span>SULYAP-<em>SEE</em>LYAB</span>
+    </div>
+    <span class="header-sub">Admin Dashboard</span>
+    <a href="/" class="header-admin-link">← Back to App</a>
+  </div>
+</header>
+
+<main class="main">
+  <div class="container">
+
+    <div class="step-head" style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:1.5rem">
+      <div>
+        <h1 style="font-size:1.5rem">Real-Time Monitoring</h1>
+        <p>Session started: {{ uptime_since[:10] }} · As of {{ now }}</p>
+      </div>
+      <button class="refresh-btn" onclick="location.reload()">↻ Refresh</button>
+    </div>
+
+    <!-- KPI row -->
+    <div class="admin-grid">
+      <div class="stat-card">
+        <div class="stat-val">{{ total }}</div>
+        <div class="stat-label">Total Calculations</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val">{{ mode_counts.get('A', 0) }}</div>
+        <div class="stat-label">Monthly Bill Mode</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val">{{ mode_counts.get('B', 0) }}</div>
+        <div class="stat-label">Appliance List Mode</div>
+      </div>
+    </div>
+
+    <!-- Panel type breakdown -->
+    <div class="admin-section">
+      <div class="admin-section-head">Panel Type Usage</div>
+      {% if panel_counts.get('mono', 0) + panel_counts.get('poly', 0) > 0 %}
+        {% set max_panel = [panel_counts.get('mono', 0), panel_counts.get('poly', 0)] | max %}
+        <div class="bar-row">
+          <span class="bar-label">Monocrystalline</span>
+          <div class="bar-track"><div class="bar-fill" style="width:{{ (panel_counts.get('mono',0) / max_panel * 100) | int }}%"></div></div>
+          <span class="bar-count">{{ panel_counts.get('mono', 0) }}</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">Polycrystalline</span>
+          <div class="bar-track"><div class="bar-fill" style="width:{{ (panel_counts.get('poly',0) / max_panel * 100) | int }}%"></div></div>
+          <span class="bar-count">{{ panel_counts.get('poly', 0) }}</span>
+        </div>
+      {% else %}
+        <div class="empty-state">No calculations yet.</div>
+      {% endif %}
+    </div>
+
+    <!-- Top locations -->
+    <div class="admin-section">
+      <div class="admin-section-head">Top Locations</div>
+      {% if top_locations %}
+        {% set max_loc = top_locations[0][1] %}
+        {% for loc, count in top_locations %}
+        <div class="bar-row">
+          <span class="bar-label">{{ loc }}</span>
+          <div class="bar-track"><div class="bar-fill" style="width:{{ (count / max_loc * 100) | int }}%"></div></div>
+          <span class="bar-count">{{ count }}</span>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">No calculations yet.</div>
+      {% endif %}
+    </div>
+
+    <!-- Recent calculations -->
+    <div class="admin-section">
+      <div class="admin-section-head">
+        <span>Recent Calculations</span>
+        <span class="uptime-tag">Last {{ recent | length }} entries</span>
+      </div>
+      {% if recent %}
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Location</th>
+            <th>Mode</th>
+            <th>Panel</th>
+            <th>System Size</th>
+            <th>Monthly Savings</th>
+            <th>Panels</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in recent %}
+          <tr>
+            <td>{{ r.time }}</td>
+            <td>{{ r.location }}</td>
+            <td><span class="badge badge-{{ 'a' if r.mode == 'Monthly Bill' else 'b' }}">{{ r.mode }}</span></td>
+            <td><span class="badge badge-{{ r.panel }}">{{ 'Mono' if r.panel == 'mono' else 'Poly' }}</span></td>
+            <td>{{ r.system_size }} kWp</td>
+            <td>₱{{ "{:,.2f}".format(r.monthly_savings) }}</td>
+            <td>{{ r.num_panels }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <div class="empty-state">No calculations recorded yet. Run a calculation to see it here.</div>
+      {% endif %}
+    </div>
+
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    SULYAP-SEELYAB Admin &mdash; Auto-refreshes on page reload &mdash; <a href="/">Back to Calculator</a>
+  </div>
+</footer>
+
+<script>
+  setTimeout(() => location.reload(), 30000);
+</script>
+</body>
+</html>

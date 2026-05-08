@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SULYAP-SEELYAB: An Albay Solar Sizing Estimator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+
+<header class="header">
+  <div class="container header-inner">
+    <div class="logo">
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+        <circle cx="16" cy="16" r="7" fill="#FFC107"/>
+        <line x1="16" y1="1" x2="16" y2="6" stroke="#FFC107" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="16" y1="26" x2="16" y2="31" stroke="#FFC107" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="1" y1="16" x2="6" y2="16" stroke="#FFC107" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="26" y1="16" x2="31" y2="16" stroke="#FFC107" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="5" y1="5" x2="8.5" y2="8.5" stroke="#FFC107" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="23.5" y1="23.5" x2="27" y2="27" stroke="#FFC107" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="27" y1="5" x2="23.5" y2="8.5" stroke="#FFC107" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="8.5" y1="23.5" x2="5" y2="27" stroke="#FFC107" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+      <span>SULYAP-<em>SEE</em>LYAB</span>
+    </div>
+    <span class="header-sub">An Albay Solar Sizing Estimator</span>
+    <a href="/admin" class="header-admin-link">Admin</a>
+  </div>
+</header>
+
+<main class="main">
+  <div class="container">
+
+    <!-- Progress -->
+    <nav class="progress-nav" id="progress-nav">
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+      <div class="progress-steps">
+        <button class="pstep active" data-step="1">
+          <span class="pstep-num">1</span>
+          <span class="pstep-label">Energy</span>
+        </button>
+        <button class="pstep" data-step="2">
+          <span class="pstep-num">2</span>
+          <span class="pstep-label">Location</span>
+        </button>
+        <button class="pstep" data-step="3">
+          <span class="pstep-num">3</span>
+          <span class="pstep-label">Efficiency</span>
+        </button>
+        <button class="pstep" data-step="4">
+          <span class="pstep-num">4</span>
+          <span class="pstep-label">Panel</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- ── STEP 1 ── -->
+    <section class="step active" id="step-1">
+      <div class="step-head">
+        <h1>How much electricity do you use?</h1>
+        <p>Choose the method that best fits what you have on hand.</p>
+      </div>
+
+      <div class="mode-toggle">
+        <label class="mode-btn" for="opt-a">
+          <input type="radio" id="opt-a" name="input_mode" value="A" checked />
+          <span class="mode-btn-inner">
+            <strong>Monthly Bill</strong>
+            <small>I have my ALECO bill</small>
+          </span>
+        </label>
+        <label class="mode-btn" for="opt-b">
+          <input type="radio" id="opt-b" name="input_mode" value="B" />
+          <span class="mode-btn-inner">
+            <strong>Appliance List</strong>
+            <small>I'll list what I use</small>
+          </span>
+        </label>
+      </div>
+
+      <!-- Option A -->
+      <div id="fields-a" class="fields-panel">
+        <label class="field-label" for="monthly_bill">Your monthly electricity bill</label>
+        <div class="input-row">
+          <span class="input-pre">₱</span>
+          <input class="text-input" type="number" id="monthly_bill" placeholder="e.g. 3,500" min="0" step="0.01" />
+        </div>
+        <p class="field-hint">Enter the total amount charged on your latest ALECO bill.</p>
+        <div class="formula-chip">
+          Average Daily kWh = (Monthly Bill ÷ Utility Rate) ÷ 30
+        </div>
+      </div>
+
+      <!-- Option B -->
+      <div id="fields-b" class="fields-panel hidden">
+        <div class="formula-chip" style="margin-bottom:1.5rem">
+          Daily kWh = Σ (Watts × Hours of Use ÷ 1000)
+        </div>
+        <div class="appliance-grid">
+          {% for appliance in appliances %}
+          <label class="app-item" for="app-{{ loop.index }}">
+            <input type="checkbox" id="app-{{ loop.index }}" class="app-check"
+                   data-name="{{ appliance.name }}" data-watts="{{ appliance.watts }}" />
+            <div class="app-body">
+              <span class="app-name">{{ appliance.name }}</span>
+              <span class="app-w">
+                <input type="number" class="app-watts" value="{{ appliance.watts }}"
+                       min="1" max="10000" step="1"
+                       title="Edit wattage"
+                       onclick="event.stopPropagation()" />
+                <span class="app-w-unit">W</span>
+              </span>
+            </div>
+            <div class="app-hrs hidden">
+              <input type="number" class="app-hours hrs-input" placeholder="hrs" min="0" max="24" step="0.5" />
+              <span class="app-kwh"></span>
+            </div>
+          </label>
+          {% endfor %}
+        </div>
+        <div class="total-bar">
+          <span>Estimated Daily Total</span>
+          <strong id="total-kwh">0.000 kWh / day</strong>
+        </div>
+      </div>
+
+      <div class="step-foot">
+        <button class="btn-next" onclick="goToStep(2)">Continue <span>→</span></button>
+      </div>
+    </section>
+
+    <!-- ── STEP 2 ── -->
+    <section class="step" id="step-2">
+      <div class="step-head">
+        <h1>Where is your property located?</h1>
+        <p>We use your location to apply the correct ALECO rate and solar irradiance data.</p>
+      </div>
+
+      <div class="select-wrap">
+        <label class="field-label" for="area-select">Select your municipality or city</label>
+        <select id="area-select" class="styled-select">
+          <option value="" disabled selected>— Choose a location —</option>
+          <optgroup label="1st District">
+            {% for area in areas %}{% if area.district == '1st District' %}
+            <option value="{{ loop.index0 }}">{{ area.location }} — {{ area.classification }}, {{ area.type }} (₱{{ "%.4f"|format(area.rate) }}/kWh · {{ area.psh }} PSH)</option>
+            {% endif %}{% endfor %}
+          </optgroup>
+          <optgroup label="2nd District">
+            {% for area in areas %}{% if area.district == '2nd District' %}
+            <option value="{{ loop.index0 }}">{{ area.location }} — {{ area.classification }}, {{ area.type }} (₱{{ "%.4f"|format(area.rate) }}/kWh · {{ area.psh }} PSH)</option>
+            {% endif %}{% endfor %}
+          </optgroup>
+          <optgroup label="3rd District">
+            {% for area in areas %}{% if area.district == '3rd District' %}
+            <option value="{{ loop.index0 }}">{{ area.location }} — {{ area.classification }}, {{ area.type }} (₱{{ "%.4f"|format(area.rate) }}/kWh · {{ area.psh }} PSH)</option>
+            {% endif %}{% endfor %}
+          </optgroup>
+          <optgroup label="Other">
+            <option value="custom">My location isn't listed (enter custom values)</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <div id="area-preview" class="area-preview hidden">
+        <div class="area-preview-stat"><span>Utility Rate</span><strong id="prev-rate">—</strong></div>
+        <div class="area-preview-stat"><span>Peak Sun Hours</span><strong id="prev-psh">—</strong></div>
+        <div class="area-preview-stat"><span>Classification</span><strong id="prev-class">—</strong></div>
+      </div>
+
+      <div id="custom-fields" class="fields-panel hidden" style="margin-top:1.5rem">
+        <div class="two-col">
+          <div>
+            <label class="field-label" for="custom_rate">Utility Rate (₱/kWh)</label>
+            <div class="input-row">
+              <span class="input-pre">₱</span>
+              <input class="text-input" type="number" id="custom_rate" placeholder="e.g. 11.28" min="0" step="0.01" />
+            </div>
+          </div>
+          <div>
+            <label class="field-label" for="custom_psh">
+              Peak Sun Hours
+              <a href="https://globalsolaratlas.info" target="_blank" class="ext-link">Look up →</a>
+            </label>
+            <div class="input-row">
+              <input class="text-input" type="number" id="custom_psh" placeholder="e.g. 5.0" min="1" max="8" step="0.01" style="padding-left:1rem" />
+              <span class="input-suf">hrs/day</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-foot">
+        <button class="btn-back" onclick="goToStep(1)">← Back</button>
+        <button class="btn-next" onclick="goToStep(3)">Continue <span>→</span></button>
+      </div>
+    </section>
+
+    <!-- ── STEP 3 ── -->
+    <section class="step" id="step-3">
+      <div class="step-head">
+        <h1>Tell us about your installation conditions.</h1>
+        <p>These factors affect how much power your system will actually produce day-to-day.</p>
+      </div>
+
+      <div class="eff-sections">
+
+        <div class="eff-section">
+          <div class="eff-section-head">
+            <div class="eff-icon">🌳</div>
+            <div>
+              <h3>Shade</h3>
+              <p>Are there trees or buildings taller than your roof nearby?</p>
+            </div>
+          </div>
+          <div class="pill-group">
+            <label class="pill" for="shade-none"><input type="radio" id="shade-none" name="shade" value="none" checked /><span>None <em>×1.00</em></span></label>
+            <label class="pill" for="shade-partial"><input type="radio" id="shade-partial" name="shade" value="partial" /><span>Partial <em>×0.80</em></span></label>
+            <label class="pill" for="shade-heavy"><input type="radio" id="shade-heavy" name="shade" value="heavy" /><span>Heavy <em>×0.50</em></span></label>
+          </div>
+        </div>
+
+        <div class="eff-section">
+          <div class="eff-section-head">
+            <div class="eff-icon">🧹</div>
+            <div>
+              <h3>Panel Cleaning</h3>
+              <p>How often do you plan to clean your panels?</p>
+            </div>
+          </div>
+          <div class="pill-group">
+            <label class="pill" for="dust-weekly"><input type="radio" id="dust-weekly" name="dust" value="weekly" checked /><span>Weekly <em>×0.98</em></span></label>
+            <label class="pill" for="dust-monthly"><input type="radio" id="dust-monthly" name="dust" value="monthly" /><span>Monthly <em>×0.95</em></span></label>
+            <label class="pill" for="dust-rarely"><input type="radio" id="dust-rarely" name="dust" value="rarely" /><span>Rarely <em>×0.90</em></span></label>
+          </div>
+        </div>
+
+        <div class="eff-section">
+          <div class="eff-section-head">
+            <div class="eff-icon">⛅</div>
+            <div>
+              <h3>Typical Weather</h3>
+              <p>Which best describes your area's usual sky throughout the year?</p>
+            </div>
+          </div>
+          <div id="weather-hint" class="weather-hint hidden"></div>
+          <div class="pill-group">
+            <label class="pill" for="weather-sunny"><input type="radio" id="weather-sunny" name="weather" value="sunny" checked /><span>Mostly Sunny <em>×1.00</em></span></label>
+            <label class="pill" for="weather-mixed"><input type="radio" id="weather-mixed" name="weather" value="mixed" /><span>Mixed <em>×0.85</em></span></label>
+            <label class="pill" for="weather-cloudy"><input type="radio" id="weather-cloudy" name="weather" value="cloudy" /><span>Often Cloudy <em>×0.70</em></span></label>
+          </div>
+        </div>
+
+        <div class="eff-footer">
+          <div class="eff-auto">
+            <span>⚡ Wiring loss (3%) applied automatically</span>
+            <span class="eff-constant">×0.97</span>
+          </div>
+          <div class="eff-result">
+            Combined Efficiency: <strong id="eff-preview-val">—</strong>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="step-foot">
+        <button class="btn-back" onclick="goToStep(2)">← Back</button>
+        <button class="btn-next" onclick="goToStep(4)">Continue <span>→</span></button>
+      </div>
+    </section>
+
+    <!-- ── STEP 4 ── -->
+    <section class="step" id="step-4">
+      <div class="step-head">
+        <h1>Which solar panel type will you use?</h1>
+        <p>Both are silicon-based and widely available in the Philippines.</p>
+      </div>
+
+      <div class="panel-grid">
+        <label class="panel-card" for="panel-mono">
+          <input type="radio" id="panel-mono" name="panel" value="mono" checked />
+          <div class="panel-card-inner">
+            <div class="panel-tag">Monocrystalline</div>
+            <h3>Higher Efficiency</h3>
+            <p>Best for rooftops with limited space. More power per square meter.</p>
+            <ul class="spec-list">
+              <li><span>Efficiency</span><b>18 – 22%</b></li>
+              <li><span>Per Panel</span><b>400 W</b></li>
+              <li><span>Price Range</span><b>₱8,000 – ₱15,000</b></li>
+            </ul>
+          </div>
+        </label>
+
+        <label class="panel-card" for="panel-poly">
+          <input type="radio" id="panel-poly" name="panel" value="poly" />
+          <div class="panel-card-inner">
+            <div class="panel-tag alt">Polycrystalline</div>
+            <h3>Budget Friendly</h3>
+            <p>Best for larger rooftops where space is not a concern.</p>
+            <ul class="spec-list">
+              <li><span>Efficiency</span><b>15 – 17%</b></li>
+              <li><span>Per Panel</span><b>320 W</b></li>
+              <li><span>Price Range</span><b>₱5,000 – ₱10,000</b></li>
+            </ul>
+          </div>
+        </label>
+      </div>
+
+      <div class="step-foot">
+        <button class="btn-back" onclick="goToStep(3)">← Back</button>
+        <button class="btn-cta" id="calc-btn" onclick="runCalculation()">Calculate My System</button>
+      </div>
+    </section>
+
+    <!-- ── RESULTS ── -->
+    <section class="step" id="step-results">
+      <div id="results-container"></div>
+      <div class="step-foot" style="margin-top:2rem">
+        <button class="btn-back" onclick="goToStep(4)">← Adjust Inputs</button>
+        <button class="btn-next" onclick="restartWizard()">Start Over</button>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    Estimates are for planning purposes only. Rates from <a href="https://testweb.alecoinc.com.ph/rates.php" target="_blank">ALECO</a> · PSH from <a href="https://globalsolaratlas.info" target="_blank">Global Solar Atlas</a> · Weather data from <a href="https://open-meteo.com" target="_blank">Open-Meteo</a> · Narvaez | Saberon | Brogada | Mojar
+  </div>
+</footer>
+
+<script src="/static/js/calculator.js"></script>
+</body>
+</html>
